@@ -102,3 +102,17 @@ if uploaded_files:
                 st.markdown(reply)
         
         st.session_state.message.append({"role": "assistant", "content": reply})
+        
+        
+""" Search bar """
+# we are doing this without button in streamlit -> hence its required to use ":="
+if prompt := st.chat_input("Ask to generate code, debug....."):
+    st.session_state.message.append({"role": "user", "content": prompt})
+    with st.chat_message("User"):
+        st.markdown(prompt)
+        
+    with st.spinner("Thinking🤔..."):
+        reply = LC.chat(st.session_state.messages)
+        st.markdown(reply)
+
+    st.session_state.message.append({"role": "assistant", "content": reply})
