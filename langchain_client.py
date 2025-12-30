@@ -20,4 +20,16 @@ class LangChainClient:
             "General Guide": " You are a general coding assistant. Provide helpful guidance and support for various coding-related queries.",
         }
         
+        self.system_prompt = role_prompts.get(mode, role_prompts["General Guide"])
+        
+        self.model = ChatGoogleGenerativeAI(
+            model = "gemini-1.5-flash",
+            temperature = 0.2,
+            google_api_key = os.getenv("GOOGLE_API_KEY")
+        )
+        
+# constructor simply loads the llm model and creates sytsem prompt based on user behavior
+
+   
+        
     
