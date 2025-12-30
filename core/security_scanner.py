@@ -1,59 +1,51 @@
-import streamlit as st
-import tempfile, os
+import re
 
-from langchain_client import LangChainClient
-from core.file_indexer import build_file_index
-from core.code_parser import parse_code
-from core.context_builder import build_context
-from core.diff_engine import extract_diff, apply_patch
+SECRET_PATTERNS = [
+    r"api[_-]?key\s*=\s*['\"][A-Za-z0-9_\-]{16,}['\"]",
+    r"secret\s*=\s*['\"][A-Za-z0-9_\-]{16,}['\"]",
+    r"token\s*=\s*['\"][A-Za-z0-9_\-]{16,}['\"]",
+]
 
-st.set_page_config("CodeSpecto", layout="wide")
-st.title("🔍 CodeSpecto")
-st.caption("AI-powered repository intelligence")
+DANGEROUS_FUNCTIONS = ["eval(", "exec("]
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+SQL_PATTERNS = [
+    r"SELECT .* FROM .* WHERE .* = .*\\+",
+    r"execute\\(.*\\+.*\\)"
+]
 
-if "files" not in st.session_state:
-    st.session_state.files = {}
+def scan_file(file_obj):
+    issues = []
+    content = file_obj["content"]
+    path = file_obj["file_path"]
 
-st.sidebar.header("📁 Upload Project Files")
-uploaded = st.sidebar.file_uploader(
-    "Upload files",
-    accept_multiple_files=True,
-    type=["py","js","ts","jsx","tsx","java","go","json","md"]
-)
+    for pattern in SECRET_PATTERNS:
+        if re.search(pattern, content, re.IGNORECASE):
+            issues.append({
+                "file": path,
+                "issue": "Hardcoded secret detected",
+                "severity": "HIGH"
+            })
 
-if uploaded:
-    for f in uploaded:
-        st.session_state.files[f.name] = f.read().decode("utf-8", errors="ignore")
+    for fn in DANGEROUS_FUNCTIONS:
+        if fn in content:
+            issues.append({
+                "file": path,
+                "issue": f"Dangerous function usage: {fn}",
+                "severity": "HIGH"
+            })
 
-st.sidebar.header("⚙️ Mode")
-mode = st.sidebar.selectbox(
-    "Select mode",
-    ["General Guide","Debugger","Code Optimizer","Review Your Code"]
-)
+    for pattern in SQL_PATTERNS:
+        if re.search(pattern, content, re.IGNORECASE):
+            issues.append({
+                "file": path,
+                "issue": "Possible SQL injection risk",
+                "severity": "MEDIUM"
+            })
 
-client = LangChainClient(mode)
+    return issues
 
-prompt = st.chat_input("Ask CodeSpecto...")
-
-if prompt:
-    file_index = build_file_index(st.session_state.files)
-    parsed = [parse_code(f) for f in file_index]
-    context = build_context(parsed, prompt)
-
-    full_prompt = f"{context}\n\nUser Query:\n{prompt}"
-
-    st.session_state.messages.append({"role":"user","content":full_prompt})
-    reply = client.chat(st.session_state.messages)
-
-    diff = extract_diff(reply)
-
-    with st.chat_message("assistant"):
-        st.markdown(reply)
-        if diff:
-            st.subheader("🔧 Suggested Patch")
-            st.code(diff, language="diff")
-
-    st.session_state.messages.append({"role":"assistant","content":reply})
+def scan_files(file_index):
+    results = []
+    for f in file_index:
+        results.extend(scan_file(f))
+    return results
