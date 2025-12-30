@@ -30,6 +30,23 @@ class LangChainClient:
         
 # constructor simply loads the llm model and creates sytsem prompt based on user behavior
 
-   
+
+
+    def chat(self, message):  # work is to show msg to llm and system prompt
+        """Send messages to the Gemini model via LangChain and return reply."""
+        prompt_messages = [SystemMessage(content=self.system_prompt)]
+        
+        # loop
+        for m in message:
+            if m["role"] == "user": # if msg is of user then structure it & then append it
+                prompt_messages.append(HumanMessage(content=m["content"]))
+                
+            else: # if not of user then AI response
+                prompt_messages.append(AIMessage(content=m["content"]))
+                
+        # out of loop
+        resp = self.model.invoke(prompt_messages)
+        return resp.content
+                
         
     
