@@ -85,4 +85,20 @@ if uploaded_files:
                 st.session_state.uploaded_texts[f.name] = "Could not able to read the file"
 
     # success msg when file gets uploaded
-    st.sidebar.success(f"{len(st.session_state.uploaded_textx)} file(s) ready for analysis !")
+    st.sidebar.success(f"{len(st.session_state.uploaded_texts)} file(s) ready for analysis !")
+
+
+if uploaded_files:
+    if st.sidebar.button("🔍 Analyse Uploaded Files"):
+        # List comprehension | dictionary so we can call items function
+        combined_text = "\n\n".join([f"📃 {name}:\n{text[:3000]}" for name, text in st.session_state.uploaded_texts.items()])
+        
+        # send to LLM without polluting the history
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing the uploaded files..."):
+                reply = LC.chat(
+                    st.session_state.message + [{"role": "user", "content": combined_text}]
+                )
+                st.markdown(reply)
+        
+        st.session_state.message.append({"role": "assistant", "content": reply})
