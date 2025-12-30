@@ -48,3 +48,23 @@ st.session_state.mode = mode
 
 LC = LangChainClient(mode=st.session_state.mode) # instance of the onstructor class
 st.caption(f"**🟢 Assistant is running in :** {mode} mode")
+
+
+def extract(file): 
+    """ 
+    Creating the extract function suitable for handling different file formats (csv/ doc/ html, etc)
+    """
+
+        
+
+# check for files uploaded
+if uploaded_files:
+    for f in uploaded_files:
+        if f.name not in st.session_state.uploaded_texts:
+            try:
+                st.session_state.uploaded_texts[f.name] = extract(f)
+            except Exception as e:
+                st.session_state.uploaded_texts[f.name] = "Could not able to read the file"
+
+    # success msg when file gets uploaded
+    st.sidebar.success(f"{len(st.session_state.uploaded_textx)} file(s) ready for analysis !")
