@@ -54,7 +54,25 @@ def extract(file):
     """ 
     Creating the extract function suitable for handling different file formats (csv/ doc/ html, etc)
     """
-
+    suffix = os.path.splitext(file.name)[-1].lower()
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(file.read())
+        tmp_path = tmp.name
+        
+    try:
+        if suffix == ".docx":
+            loader = Docx2txtLoader(tmp_path)
+        elif suffix == ".pdf":
+            loader = PyPDFLoader(tmp_path)
+        else:
+            # plain text of code file
+            with open(tmp_path, "r", encoding="utf-8", errors="ignore") as f:
+                return f.read()
+        
+        docs = loader.load()
+        return "\n".join([doc.page_content for doc in docs])
+    finally:
+        os.unlink(tmp_path) # cleanup temp file
         
 
 # check for files uploaded
