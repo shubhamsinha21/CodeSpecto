@@ -40,17 +40,16 @@ CodeSpecto is an advanced AI code assistant designed for developers to analyze, 
 ## 📂 Architecture & File Structure
 
 CodeSpecto/
-│
-├─ app.py # Main Streamlit interface and UI
-├─ langchain_client.py # LangChain + Google Gemini AI integration
-├─ requirements.txt # Python dependencies
-├─ core/
-│ ├─ file_indexer.py # Index and manage uploaded files
-│ ├─ code_parser.py # Parse code and extract snippets
-│ ├─ context_builder.py # Build AI context per file
-│ ├─ diff_engine.py # Extract/apply AI suggested diffs
-│ └─ security_scanner.py # Scan files for security issues
-└─ README.md # Project documentation
+- app.py # Main Streamlit interface and UI
+- langchain_client.py # LangChain + Google Gemini AI integration
+- requirements.txt # Python dependencies
+- core/
+ *file_indexer.py* # Index and manage uploaded files
+ *code_parser.py* # Parse code and extract snippets
+ *context_builder.py* # Build AI context per file
+ *diff_engine.py* # Extract/apply AI suggested diffs
+ *security_scanner.py* # Scan files for security issues
+ *README.md* # Project documentation
 
 
 ## ⚙️ Installation
